@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator Debit Pompa Air Tanah</title>
+<style>
+:root{--navy:#12304a;--blue:#1479b8;--pale:#edf6fb;--ink:#172b3a;--muted:#617382;--line:#d7e2e9;--green:#147d55}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f7fa;color:var(--ink);line-height:1.45}
+header{background:linear-gradient(135deg,#12304a,#1479b8);color:white;padding:28px 18px}
+.wrap{max-width:980px;margin:auto}h1{font-size:clamp(1.5rem,4vw,2.2rem);margin:0 0 8px}header p{margin:0;opacity:.92}
+main{max-width:980px;margin:22px auto;padding:0 14px 32px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px #16344a0b}
+h2{font-size:1.1rem;margin:0 0 16px;color:var(--navy)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-size:.9rem;font-weight:700;margin-bottom:6px}
+input,select{width:100%;padding:11px 12px;border:1px solid #bdcbd5;border-radius:9px;background:#fff;color:var(--ink);font-size:1rem}
+small,.hint{font-size:.82rem;color:var(--muted)}.field{min-width:0}.full{grid-column:1/-1}
+button{width:100%;border:0;border-radius:10px;padding:13px 16px;background:var(--blue);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;margin-top:16px}
+button:hover{filter:brightness(.95)}.result{background:var(--pale);border:1px solid #c9e2f0;border-radius:12px;padding:18px;margin-bottom:14px}
+.big{font-size:clamp(2rem,5vw,2.8rem);font-weight:800;color:var(--navy);line-height:1.1;margin:5px 0}
+.unit{font-size:1rem;font-weight:600}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.metric{border:1px solid var(--line);border-radius:10px;padding:12px}.metric strong{display:block;font-size:1.15rem;color:var(--navy)}
+.note{border-left:4px solid #e0a12e;background:#fff8e8;padding:12px;border-radius:5px;font-size:.88rem}
+.green{color:var(--green)}footer{max-width:980px;margin:0 auto;padding:0 16px 24px;color:var(--muted);font-size:.82rem}
+@media(max-width:720px){main{grid-template-columns:1fr;margin-top:14px}.grid{grid-template-columns:1fr 1fr}.card{padding:16px}}
+@media(max-width:420px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>Kalkulator Debit Pompa Air Tanah</h1><p>Estimasi debit berdasarkan daya pompa dan tinggi tekan, dengan pilihan jenis mesin.</p></div></header>
+<main>
+<section class="card">
+<h2>Masukkan data pompa</h2>
+<div class="grid">
+<div class="field full"><label for="type">Jenis mesin / pompa</label><select id="type"><option value="submersible">Pompa celup (submersible)</option><option value="surface">Pompa permukaan</option><option value="diesel">Mesin diesel penggerak pompa</option><option value="electric">Pompa listrik (jenis belum diketahui)</option></select></div>
+<div class="field"><label for="power">Besar daya pompa</label><input id="power" type="number" min="0.1" step="0.1" value="5.5"><small>Masukkan angka daya</small></div>
+<div class="field"><label for="unitPower">Satuan daya</label><select id="unitPower"><option value="hp">HP / PK</option><option value="kw">kW</option></select></div>
+<div class="field"><label for="head">Total tinggi tekan (m)</label><input id="head" type="number" min="0.1" step="0.5" value="20"><small>Elevasi + kebutuhan tekanan + rugi pipa</small></div>
+<div class="field"><label for="eff">Efisiensi perkiraan (%)</label><input id="eff" type="number" min="10" max="85" step="1" value="50"><small>Pompa dan penggerak, asumsi awal</small></div>
+<div class="field"><label for="diam">Diameter dalam pipa (inci)</label><select id="diam"><option value="2">2 inci</option><option value="3">3 inci</option><option value="4">4 inci</option><option value="5">5 inci</option><option value="6">6 inci</option><option value="8" selected>8 inci</option><option value="10">10 inci</option><option value="12">12 inci</option></select></div>
+<div class="field"><label for="length">Panjang pipa (m)</label><input id="length" type="number" min="0" step="1" value="50"><small>Perkiraan panjang jalur pipa</small></div>
+<div class="field full"><label for="method">Cara estimasi</label><select id="method"><option value="power">Berdasarkan daya dan tinggi tekan</option><option value="velocity">Berdasarkan kecepatan aliran asumsi</option></select></div>
+</div>
+<button onclick="calculate()">Hitung estimasi debit</button>
+<p class="hint">Jika tinggi tekan belum diketahui, gunakan perkiraan sementara lalu ukur di lapangan untuk hasil yang lebih akurat.</p>
+</section>
+<section class="card">
+<h2>Hasil estimasi</h2>
+<div class="result"><div class="hint">Perkiraan debit air</div><div class="big" id="mainResult">— <span class="unit">L/detik</span></div><div id="m3h">— m³/jam</div></div>
+<div class="metrics">
+<div class="metric"><small>Rentang indikatif</small><strong id="range">—</strong><small>L/detik</small></div>
+<div class="metric"><small>Kecepatan dalam pipa</small><strong id="velocity">—</strong><small>m/detik</small></div>
+<div class="metric"><small>Volume 1 jam</small><strong id="hour">—</strong><small>liter/jam</small></div>
+<div class="metric"><small>Volume 8 jam</small><strong id="day">—</strong><small>m³/8 jam</small></div>
+</div>
+<div class="note" id="explain">Isi data pompa lalu tekan “Hitung estimasi debit”.</div>
+<p class="hint" style="margin-top:14px">Jenis mesin dan daya saja tidak cukup untuk memastikan debit aktual. Hasil ini merupakan perkiraan, bukan hasil pengukuran.</p>
+</section>
+</main>
+<footer>Rumus daya hidrolik: Q ≈ (daya input × efisiensi) ÷ (ρ × g × tinggi tekan). Hasil nyata dipengaruhi kurva pompa, kedalaman muka air, penurunan muka air saat dipompa, diameter dan panjang pipa, sambungan, serta kondisi mesin.</footer>
+<script>
+function fmt(n,d=2){return Number.isFinite(n)?n.toLocaleString('id-ID',{maximumFractionDigits:d,minimumFractionDigits:0}):'—'}
+function calculate(){
+ const type=document.getElementById('type').value;
+ const power=Number(document.getElementById('power').value);
+ const unit=document.getElementById('unitPower').value;
+ const head=Number(document.getElementById('head').value);
+ const eff=Number(document.getElementById('eff').value)/100;
+ const inch=Number(document.getElementById('diam').value);
+ const length=Number(document.getElementById('length').value);
+ const method=document.getElementById('method').value;
+ if(!(power>0)||!(head>0)||!(eff>0&&eff<=.85)||length<0){alert('Periksa kembali daya, tinggi tekan, efisiensi, dan panjang pipa.');return}
+ const watts=unit==='hp'?power*745.7:power*1000;
+ let q;
+ if(method==='power'){
+   q=(watts*eff)/(1000*9.81*head)*1000;
+ } else {
+   // Kecepatan asumsi yang konservatif untuk pipa distribusi.
+   const v=1.2;
+   const diameter=inch*0.0254;
+   q=(Math.PI*diameter*diameter/4)*v*1000;
+ }
+ const d=inch*0.0254, area=Math.PI*d*d/4;
+ const vel=(q/1000)/area;
+ const low=q*.65, high=q*1.25;
+ document.getElementById('mainResult').innerHTML=fmt(q)+' <span class="unit">L/detik</span>';
+ document.getElementById('m3h').textContent=fmt(q*3.6)+' m³/jam';
+ document.getElementById('range').textContent=fmt(low)+'–'+fmt(high);
+ document.getElementById('velocity').textContent=fmt(vel);
+ document.getElementById('hour').textContent=fmt(q*3600,0);
+ document.getElementById('day').textContent=fmt(q*3.6*8);
+ const names={submersible:'pompa celup',surface:'pompa permukaan',diesel:'mesin diesel penggerak pompa',electric:'pompa listrik'};
+ let msg='Estimasi menggunakan '+names[type]+', daya '+fmt(power)+' '+(unit==='hp'?'HP/PK':'kW')+'. ';
+ if(method==='power') msg+='Perhitungan daya memakai tinggi tekan '+fmt(head)+' m dan efisiensi '+fmt(eff*100,0)+'%. ';
+ else msg+='Perhitungan menggunakan kecepatan aliran asumsi 1,2 m/detik; daya dan tinggi tekan tidak menjadi dasar utama hasil ini. ';
+ msg+='Rentang indikatif bukan batas pasti. Panjang pipa '+fmt(length)+' m belum dimodelkan sebagai rugi gesek rinci; jika rugi pipa belum termasuk dalam tinggi tekan, hasil bisa terlalu tinggi.';
+ document.getElementById('explain').textContent=msg;
+}
+calculate();
+</script>
+</body>
+</html>
